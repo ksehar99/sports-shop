@@ -1,9 +1,11 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import Label, Frame, PhotoImage, Checkbutton, Button, IntVar, OptionMenu, StringVar
+from update_cart import UpdateCart
+
 
 class Window(tk.Tk):  # class window created and is inheriting from built-in class tk.Tk of tkinter
-    def __init__(self):  # constructor created for the class
+    def __init__(self, update):  # constructor created for the class
         super().__init__()
 
         self['background'] = "grey"
@@ -41,10 +43,11 @@ class Window(tk.Tk):  # class window created and is inheriting from built-in cla
         self.img_lab2 = Label(self.image_frame, image=self.img3)
         self.img_lab2.pack()
 
-        self.tabs = Tabs(self)  # instantiating the tab class within the Window class to demonstrate composition relationship
+        self.tabs = Tabs(self, update)  # instantiating the tab class within the Window class to demonstrate composition relationship
+
 
 class Tabs: # class designated for creating tabs
-    def __init__(self, parent):
+    def __init__(self, parent, update):
         self.notebook = ttk.Notebook(parent)
         self.tabs = [
             ('Cricket Gear', '#000080'),
@@ -59,6 +62,8 @@ class Tabs: # class designated for creating tabs
 
         self.create_tabs()
         self.notebook.pack(fill='both', expand=True)
+
+        self.update = update
 
     def create_tabs(self):
         for tab_text, tab_color in self.tabs:
@@ -203,19 +208,19 @@ class Tabs: # class designated for creating tabs
                 var42 = IntVar()
                 self.create_checkbox_with_buttons(button_frame, "Head Bands", var42, 43)
 
-    def increase(self, var): # function created to increase the quantity on clicking the + button
-        var.set(var.get() + 1)
-
-    def decrease(self, var): # function created to decrease the quantity on clicking the - button
-        if var.get()>0:
-            var.set(var.get() - 1)
-
     def create_checkbox_with_buttons(self, parent, text, var, row): # function created for making the checkboxes functional
-        Checkbutton(parent, text=text, variable=var, fg='black', bg='#d3d3d3', anchor='w').grid(row=row, column=0, sticky='w', padx=5)
-        Button(parent, text="+", command=lambda: self.increase(var), fg='black', bg='#d3d3d3').grid(row=row, column=1, padx=5)
-        Label(parent, textvariable=var, fg='black', bg='#d3d3d3', width=3, anchor='e').grid(row=row, column=2, padx=5)
-        Button(parent, text="-", command=lambda: self.decrease(var), fg='black', bg='#d3d3d3').grid(row=row, column=3, padx=5)
+        def on_checkbutton_click():
+            if var.get() == 0:  # If the checkbox is being checked for the first time
 
-if __name__ == "__main__": # temporary statement to make the code functional when it is not connected to the main
-    window = Window()
-    window.mainloop()
+                self.update.increase(var, text)  # Increase the quantity and update the cart
+
+        Checkbutton(parent, text=text, variable=var, fg='black', bg='#d3d3d3', anchor='w', command=on_checkbutton_click).grid(row=row, column=0, sticky='w', padx=5)
+        Button(parent, text="+", command=lambda: self.update.increase(var, text), fg='black', bg='#d3d3d3').grid(row=row, column=1, padx=5)
+        Label(parent, textvariable=var, fg='black', bg='#d3d3d3', width=3, anchor='e').grid(row=row, column=2, padx=5)
+        Button(parent, text="-", command=lambda: self.update.decrease(var, text), fg='black', bg='#d3d3d3').grid(row=row, column=3, padx=5)
+
+
+u = UpdateCart()
+window = Window(u)
+window.mainloop()
+print(u.cart)
